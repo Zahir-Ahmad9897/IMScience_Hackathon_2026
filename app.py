@@ -99,21 +99,30 @@ section[data-testid="stSidebar"] .block-container{padding:.8rem}
 .stButton>button:hover{background:linear-gradient(135deg,#2ea043,#3fb950);
     transform:translateY(-1px);box-shadow:0 4px 16px rgba(63,185,80,.3)}
 
-/* ── Input — white box, black border ── */
-[data-testid="stChatInput"] textarea{
-    background:#ffffff!important;
-    border:2px solid #000000!important;
-    border-radius:10px!important;
-    color:#111111!important;
-    font-size:1rem!important;}
-[data-testid="stChatInput"] textarea::placeholder{color:#777!important}
-[data-testid="stChatInput"] textarea:focus{
-    border:2px solid #1a472a!important;
-    box-shadow:0 0 0 3px rgba(63,185,80,.25)!important}
+/* ── Input — ChatGPT style ── */
 [data-testid="stChatInput"]{
     background:#ffffff!important;
-    border:2px solid #000000!important;
-    border-radius:12px!important}
+    border:1.5px solid #d1d5da!important;
+    border-radius:24px!important;
+    box-shadow:0 4px 24px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.08)!important;
+    padding:4px 8px!important;
+    transition:box-shadow .2s,border-color .2s}
+[data-testid="stChatInput"]:focus-within{
+    border-color:#3fb950!important;
+    box-shadow:0 6px 32px rgba(63,185,80,.2),0 2px 8px rgba(0,0,0,.1)!important}
+[data-testid="stChatInput"] textarea{
+    background:#ffffff!important;
+    border:none!important;
+    border-radius:20px!important;
+    color:#111111!important;
+    font-size:1rem!important;
+    line-height:1.6!important;
+    padding:12px 16px!important;
+    resize:none!important;
+    box-shadow:none!important;
+    outline:none!important}
+[data-testid="stChatInput"] textarea::placeholder{
+    color:#9ca3af!important;font-size:.95rem}
 
 /* ── Upload ── */
 [data-testid="stFileUploader"]{background:var(--card);
