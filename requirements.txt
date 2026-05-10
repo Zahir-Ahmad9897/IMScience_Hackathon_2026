@@ -23,13 +23,13 @@ python-dotenv
 streamlit
 
 # Web search
-duckduckgo-search
+duckduckgo-search==6.3.7
 
 # Voice — Text-to-Speech
 gTTS
 
-# Audio utility
-pydub
+# Audio utility (optional - comment out if build fails)
+# pydub
 
 # Language detection
 langdetect
