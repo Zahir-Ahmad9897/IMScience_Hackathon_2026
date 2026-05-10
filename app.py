@@ -83,10 +83,27 @@ html, body, [class*="css"] {
 section[data-testid="stSidebar"]{background:var(--card)!important;border-right:1px solid var(--border)}
 section[data-testid="stSidebar"] .block-container{padding:.8rem}
 
-/* ── Chat ── */
-.stChatMessage{background:var(--card)!important;border:1px solid var(--border)!important;
-    border-radius:var(--r)!important;margin-bottom:.6rem}
-[data-testid="stChatMessageContent"] p{line-height:1.75}
+/* ── Chat — assistant = cream white, user = dark ── */
+.stChatMessage{border-radius:var(--r)!important;margin-bottom:.7rem!important;border:none!important}
+
+/* Assistant bubble — warm cream */
+.stChatMessage[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]){
+    background:#fdfaf5!important;
+    border:1px solid #e8e0d0!important;
+    border-left:4px solid #2ea043!important;
+    box-shadow:0 2px 12px rgba(0,0,0,.08)!important}
+.stChatMessage[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) p{
+    color:#1a1a1a!important;line-height:1.8}
+.stChatMessage[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) *{
+    color:#1a1a1a!important}
+
+/* User bubble — dark card */
+.stChatMessage[data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]){
+    background:#1c2128!important;
+    border:1px solid #30363d!important;
+    box-shadow:0 1px 6px rgba(0,0,0,.15)!important}
+
+[data-testid="stChatMessageContent"] p{line-height:1.8}
 
 /* ── Urdu RTL ── */
 .umsg{direction:rtl;font-family:'Noto Nastaliq Urdu',serif;
