@@ -163,6 +163,7 @@ def _init():
         "msg_history":    [],
         "thread_id":      None,
         "past_threads":   [],
+        "thread_names":   {},   # {thread_id: display_name} like ChatGPT
         "img_context":    "",
         "tts_on":         False,
         "tts_lang":       "ur",
@@ -302,16 +303,35 @@ with st.sidebar:
             st.rerun()
 
     # Current thread badge
+    cur_name = st.session_state["thread_names"].get(
+        st.session_state["thread_id"], "New Chat"
+    )
     st.markdown(
-        f"<div class='mem'>🔵 Session: <b>{st.session_state['thread_id']}</b></div>",
+        f"<div class='mem'>Active: <b>{cur_name}</b></div>",
         unsafe_allow_html=True
     )
 
-    # Past sessions
-    for tid in st.session_state["past_threads"][:12]:
-        is_cur = tid == st.session_state["thread_id"]
-        lbl    = f"{'🔵' if is_cur else '⚪'} {tid}"
-        if st.button(lbl, key=f"tid_{tid}"):
+    # ── Past sessions — ChatGPT style named list ──
+    ROLE_ICON_MAP = {"farmer": "🌾", "customer": "🛒", "doctor": "👨‍⚕️"}
+    st.markdown(
+        "<div style='font-size:.78rem;color:#8b949e;margin:4px 0 2px'>Recent Chats</div>",
+        unsafe_allow_html=True
+    )
+    for tid in st.session_state["past_threads"][:15]:
+        is_cur    = tid == st.session_state["thread_id"]
+        chat_name = st.session_state["thread_names"].get(tid, f"Chat {tid}")
+        # Truncate to 22 chars
+        display   = chat_name[:22] + "..." if len(chat_name) > 22 else chat_name
+        bg  = "background:rgba(63,185,80,.12);border-color:#3fb950" if is_cur else "background:#1c2128;border-color:#30363d"
+        dot = "<span style='width:7px;height:7px;border-radius:50%;background:#3fb950;display:inline-block;margin-right:6px'></span>" if is_cur else ""
+        st.markdown(
+            f"<div id='chat_{tid}' style='padding:7px 10px;margin:2px 0;border-radius:8px;"
+            f"border:1px solid;cursor:pointer;{bg};transition:.15s'>"
+            f"{dot}<span style='color:#e6edf3;font-size:.82rem'>{display}</span></div>",
+            unsafe_allow_html=True
+        )
+        if st.button(display, key=f"tid_{tid}", use_container_width=True,
+                     help=chat_name):
             st.session_state["thread_id"]   = tid
             st.session_state["msg_history"] = _restore_thread(tid)
             st.session_state["img_context"] = ""
@@ -573,6 +593,14 @@ if user_input:
     lang = (detect_language(user_input)
             if st.session_state["language"] == "auto"
             else st.session_state["language"])
+
+    # Auto-name thread on FIRST message (like ChatGPT)
+    tid = st.session_state["thread_id"]
+    if tid not in st.session_state["thread_names"] or st.session_state["thread_names"][tid] == "New Chat":
+        role_prefix = {"farmer": "Farmer", "customer": "Market", "doctor": "Doctor"}[
+            st.session_state["user_role"]]
+        short = user_input.strip().replace("\n", " ")[:35]
+        st.session_state["thread_names"][tid] = f"{role_prefix}: {short}"
 
     # Show user message immediately
     st.session_state["msg_history"].append({"role":"user","content":user_input})

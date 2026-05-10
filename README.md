@@ -1,111 +1,142 @@
 # KisanAI — Intelligent Multi-Agent Agricultural Advisory System
 
-> **IMScience Hackathon 2026** | GPT-4o + LangGraph + Streamlit | Built for Pakistan Agriculture
+> **IMScience Hackathon 2026** | GPT-4o + LangGraph + Streamlit | Pakistan Agriculture
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.1-green)](https://github.com/langchain-ai/langgraph)
 [![GPT-4o](https://img.shields.io/badge/GPT--4o-OpenAI-blueviolet)](https://openai.com)
 [![Streamlit](https://img.shields.io/badge/UI-Streamlit-red)](https://streamlit.io)
-
----
-
-## What is KisanAI?
-
-KisanAI is a production-grade, **bilingual (English + Urdu)** multi-agent advisory system for Pakistan's agricultural sector. Three specialized AI agents collaborate under a LangGraph supervisor to give farmers, customers, and crop doctors expert advice in real-time — with voice, image, and smart email alerts.
-
----
-
-## Live Demo Features
-
-| Feature | Description |
-|---------|-------------|
-| 3 AI Agents | Farmer / Customer / Crop Doctor — each GPT-4o powered |
-| Bilingual | Auto-detects English or Urdu — Urdu renders RTL |
-| Voice Input | Whisper AI transcribes Urdu/English speech |
-| Crop Vision | Upload photo — GPT-4o diagnoses disease/pest |
-| Smart Alerts | Email alerts for weather, disease, market prices |
-| Demo Slider | Slide temperature to trigger live alert email |
-| Memory | Full conversation history per session (SQLite) |
-| LangSmith | Real-time agent trace in LangSmith dashboard |
+[![LangSmith](https://img.shields.io/badge/Tracing-LangSmith-orange)](https://smith.langchain.com)
 
 ---
 
 ## System Architecture
 
 ```
-+----------------------------------------------------------+
-|                    STREAMLIT FRONTEND                    |
-|  Role Selector | Chat | Voice | Image | Demo Alert Slider|
-+---------------------------+------------------------------+
-                            |
-                            v
-+----------------------------------------------------------+
-|              LANGGRAPH SUPERVISOR / ROUTER               |
-|   user_role --> routes to agent                          |
-|   SQLite Checkpointer --> Full conversation memory       |
-|   LangSmith --> Real-time trace every agent call         |
-+----------+-----------------+----------------+-----------+
-           |                 |                |
-           v                 v                v
-  +----------------+ +---------------+ +----------------+
-  |  FARMER AGENT  | |CUSTOMER AGENT | | DOCTOR AGENT   |
-  |  GPT-4o        | |  GPT-4o       | |  GPT-4o        |
-  |  (Agronomist)  | |  (Market Adv) | |  (Pathologist) |
-  +-------+--------+ +-------+-------+ +--------+-------+
-          |                  |                   |
-          +------------------+-------------------+
-                             |
-               +-------------+-------------+
-               |    SHARED TOOLS            |
-               |  web_search  (DuckDuckGo)  |
-               |  get_weather (OpenWeather)  |
-               |  analyze_crop (GPT-4o Vis) |
-               |  agri_calculator           |
-               +-------------+-------------+
-                             |
-               +-------------+-------------+
-               |   ALERT SYSTEM             |
-               |  WeatherAlert  (email)     |
-               |  DiseaseAlert  (email)     |
-               |  MarketAlert   (email)     |
-               +----------------------------+
+                         STREAMLIT UI
+          +------------------------------------------+
+          |  Chat | Voice | Image | Demo Slider | TTS |
+          +--------------------+---------------------+
+                               |
+                               v
+          +------------------------------------------+
+          |           LANGRAPH ORCHESTRATOR          |
+          |                                          |
+          |   Routes by user_role -->  agent node    |
+          |   SQLite Checkpointer  -->  full memory  |
+          |   LangSmith Tracer     -->  live debug   |
+          +-------+------------+------------+--------+
+                  |            |            |
+          +-------+--+  +------+---+  +----+------+
+          |  FARMER  |  | CUSTOMER |  |  DOCTOR   |
+          |  AGENT   |  |  AGENT   |  |  AGENT    |
+          |          |  |          |  |           |
+          | GPT-4o   |  | GPT-4o   |  | GPT-4o    |
+          | Agronomst|  | Market   |  | Pathologst|
+          +-------+--+  +------+---+  +----+------+
+                  |            |            |
+                  +------------+------------+
+                               |
+               +---------------+---------------+
+               |         SHARED TOOLS          |
+               |                               |
+               |  +----------+  +----------+   |
+               |  |web_search|  | weather  |   |
+               |  | DuckDuck |  | OpenWthr |   |
+               |  +----------+  +----------+   |
+               |  +----------+  +----------+   |
+               |  | vision   |  |  calc    |   |
+               |  | GPT-4o   |  | agri_clc |   |
+               |  +----------+  +----------+   |
+               +---------------+---------------+
+                               |
+               +---------------+---------------+
+               |        ALERT SYSTEM           |
+               |                               |
+               |  +----------+  +----------+   |
+               |  | Weather  |  | Disease  |   |
+               |  |  Alert   |  |  Alert   |   |
+               |  +----------+  +----------+   |
+               |         +----------+          |
+               |         | Market   |          |
+               |         |  Alert   |          |
+               |         +----------+          |
+               |                               |
+               |    Gmail SMTP  -->  Email      |
+               +-------------------------------+
 ```
 
 ---
 
-## Agent Flow
+## Orchestrator — Central Hub
 
 ```
-User (Text / Voice / Image)
-         |
-   [Language Detection]
-         |
-   [LangGraph routes to agent]
-         |
-   [GPT-4o processes with tools]
-         |
-   [Tool called? Search/Weather/Vision/Calc]
-         |
-   [SQLite saves full state]
-         |
-   [Response rendered + optional TTS]
-         |
-   [LangSmith logs trace]
-         |
-   [Alert email fired if threshold met]
+                            USER INPUT
+                          (Text/Voice/Image)
+                                 |
+                     +-----------+-----------+
+                     |                       |
+              Language Detection        Image Analysis
+               (auto EN / UR)          (GPT-4o Vision)
+                     |                       |
+                     +-----------+-----------+
+                                 |
+                     +-----------v-----------+
+                     |                       |
+                     |   LangGraph           |
+                     |   ORCHESTRATOR        |
+                     |                       |
+                     |  user_role ---------> |----> farmer_node
+                     |  language  ---------> |----> customer_node
+                     |  image_ctx ---------> |----> doctor_node
+                     |  thread_id ---------> |----> SQLite Memory
+                     |                       |
+                     +-----------+-----------+
+                                 |
+                        +--------+--------+
+                        |                 |
+                   Tool Called?       No Tool
+                        |                 |
+                   ToolNode            Direct
+                   Executes            Reply
+                        |                 |
+                        +--------+--------+
+                                 |
+                     +-----------v-----------+
+                     |   RESPONSE RENDERED   |
+                     |  RTL if Urdu          |
+                     |  TTS if enabled       |
+                     |  Alert if threshold   |
+                     +-----------------------+
+                                 |
+                          LangSmith Log
 ```
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| 3 GPT-4o Agents | Farmer / Customer / Crop Doctor with specialist prompts |
+| Bilingual | Auto-detect EN/UR — Urdu renders RTL with Noto Nastaliq |
+| Voice Input | OpenAI Whisper transcribes Urdu/English speech |
+| Crop Vision | Upload photo — GPT-4o Vision diagnoses disease/pest |
+| Named Chats | Threads auto-named from first message (like ChatGPT) |
+| Smart Alerts | Email alerts for weather, disease, market price events |
+| Demo Slider | Temperature slider triggers live alert email for demo |
+| Memory | Full per-session history via LangGraph SQLite checkpointer |
+| LangSmith | Every agent call traced with role, language, session metadata |
 
 ---
 
 ## Smart Alert System
 
-| Alert | Trigger | Email |
-|-------|---------|-------|
-| Weather | Temp >42C / <5C / Wind >40kmh / Rain | Heatwave / Frost / Storm warning |
-| Disease | Every GPT-4o Vision diagnosis | Full HTML disease report |
-| Market | Price change >20% detected | Buy/sell advice email |
-
-Demo: Use the **temperature slider** in the sidebar to set any temperature and click **"Send Demo Alert Email"** — a professional HTML email arrives instantly.
+| Alert Type | Trigger Condition | Email Content |
+|------------|------------------|---------------|
+| Weather | Temp >42C / <5C / Wind >40kmh | Heatwave/Frost/Storm warning + Urdu advice |
+| Disease | Every GPT-4o crop image diagnosis | Full HTML report with severity badge |
+| Market | Price change >20% in search results | Buy/sell recommendation + Urdu summary |
 
 ---
 
@@ -113,63 +144,57 @@ Demo: Use the **temperature slider** in the sidebar to set any temperature and c
 
 ```
 IMScience_Hackthon2026/
-+-- app.py                   # Streamlit UI (dark theme, bilingual)
-+-- orchestrator.py          # LangGraph graph + routing + memory
++-- app.py                    Streamlit UI (dark theme, bilingual, named chats)
++-- orchestrator.py           LangGraph graph + routing + SQLite memory
 +-- requirements.txt
 +-- README.md
 +-- .gitignore
++-- .env.example              Safe template (copy to .env)
 |
 +-- agents/
-|   +-- farmer_agent.py
-|   +-- customer_agent.py
-|   +-- doctor_agent.py
+|   +-- farmer_agent.py       Agronomist (crops, fertilizer, irrigation)
+|   +-- customer_agent.py     Market advisor (prices, selling, news)
+|   +-- doctor_agent.py       Plant pathologist (disease, pesticides)
 |
 +-- tools/
-|   +-- search_tool.py       # DuckDuckGo + market alert hook
-|   +-- weather_tool.py      # OpenWeatherMap + weather alert hook
-|   +-- vision_tool.py       # GPT-4o Vision + disease alert hook
-|   +-- calculator_tool.py
+|   +-- search_tool.py        DuckDuckGo search + market alert hook
+|   +-- weather_tool.py       OpenWeatherMap API + weather alert hook
+|   +-- vision_tool.py        GPT-4o Vision + disease alert hook
+|   +-- calculator_tool.py    Yield / cost / dosage calculator
 |
 +-- utils/
-    +-- language.py          # Auto EN/UR detection
-    +-- voice.py             # Whisper STT + gTTS TTS
-    +-- alert_manager.py     # Gmail SMTP alert system
+    +-- language.py           Auto EN/UR language detection
+    +-- voice.py              Whisper STT + gTTS TTS
+    +-- alert_manager.py      Gmail SMTP alert engine (3 alert types)
 ```
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Agents | OpenAI GPT-4o |
-| Orchestration | LangGraph 1.1 |
-| Vision | GPT-4o Vision |
-| Voice STT | OpenAI Whisper |
-| Voice TTS | gTTS |
-| Web Search | DuckDuckGo (pk-en) |
-| Weather | OpenWeatherMap API |
-| Memory | SQLite + LangGraph Checkpointer |
-| Tracing | LangSmith |
-| Alerts | Gmail SMTP (smtplib) |
-| UI | Streamlit |
+| Layer | Technology | Role |
+|-------|-----------|------|
+| Agents | OpenAI GPT-4o | Reasoning + tool use + multilingual |
+| Orchestration | LangGraph 1.1 | State graph + routing + memory |
+| Vision | GPT-4o Vision | Crop disease image diagnosis |
+| Voice STT | OpenAI Whisper | Urdu + English speech-to-text |
+| Voice TTS | gTTS | Bilingual text-to-speech |
+| Web Search | DuckDuckGo (pk-en) | Real-time agri info |
+| Weather | OpenWeatherMap | Live weather + farming tips |
+| Memory | SQLite + Checkpointer | Full conversation persistence |
+| Tracing | LangSmith | Real-time agent debug dashboard |
+| Alerts | Gmail SMTP (smtplib) | Weather / disease / price emails |
+| UI | Streamlit | Dark theme bilingual chat interface |
 
 ---
 
 ## How to Run
 
 ```powershell
-# 1. Clone
 git clone https://github.com/Zahir-Ahmad9897/IMScience_Hackathon_2026.git
 cd IMScience_Hackathon_2026
-
-# 2. Install dependencies
 pip install -r requirements.txt
-
-# 3. Set up .env (copy template and fill in your keys)
-copy .env.example .env
-
-# 4. Run
+copy .env.example .env        # Fill in your API keys
 streamlit run app.py --server.port 8501
 ```
 
@@ -177,22 +202,18 @@ Open: **http://localhost:8501**
 
 ---
 
-## Environment Variables (.env)
+## Environment Variables
 
 ```
-OPENAI_API_KEY=your_openai_key
-GROQ_API_KEY=your_groq_key
-OPENWEATHER_API_KEY=your_weather_key
-LANGCHAIN_API_KEY=your_langsmith_key
-LANGCHAIN_TRACING_V2=true
-ALERT_EMAIL_SENDER=your_gmail@gmail.com
-ALERT_EMAIL_PASSWORD=your_gmail_app_password
-ALERT_EMAIL_RECEIVER=farmer_email@gmail.com
+OPENAI_API_KEY          GPT-4o agents + Vision + Whisper
+GROQ_API_KEY            Backup fast inference
+OPENWEATHER_API_KEY     Live weather data
+LANGCHAIN_API_KEY       LangSmith tracing
+ALERT_EMAIL_SENDER      Gmail address for sending alerts
+ALERT_EMAIL_PASSWORD    Gmail App Password (16 chars)
+ALERT_EMAIL_RECEIVER    Farmer email to receive alerts
 ```
 
 ---
 
-## Built By
-
-**Zahir Ahmad** | IMScience Hackathon 2026
-Stack: Python 3.11 | LangGraph | OpenAI GPT-4o | Streamlit | SQLite | Gmail SMTP
+**Built by Zahir Ahmad** | IMScience Hackathon 2026
