@@ -7,6 +7,9 @@
 [![GPT-4o](https://img.shields.io/badge/GPT--4o-OpenAI-blueviolet)](https://openai.com)
 [![Streamlit](https://img.shields.io/badge/UI-Streamlit-red)](https://streamlit.io)
 [![LangSmith](https://img.shields.io/badge/Tracing-LangSmith-orange)](https://smith.langchain.com)
+[![Live Demo](https://img.shields.io/badge/LIVE%20DEMO-GCP%20Cloud%20Run-4285F4)](https://kisanai-23673755708.us-central1.run.app)
+
+> **Live Demo:** https://kisanai-23673755708.us-central1.run.app
 
 ---
 
