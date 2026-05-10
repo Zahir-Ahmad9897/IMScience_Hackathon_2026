@@ -1,0 +1,152 @@
+# ============================================================
+# .gitignore — KisanAI Multi-Agent System
+# ============================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# --- Virtual Environments ---
+venv/
+myvenv/
+.venv/
+env/
+ENV/
+
+# --- Environment & Secrets (NEVER commit) ---
+.env
+.env.*
+*.env
+secrets.json
+
+# --- Database ---
+*.db
+*.sqlite
+*.sqlite3
+database.db
+
+# --- Streamlit ---
+.streamlit/secrets.toml
+
+# --- LangSmith / LangChain ---
+.langchain/
+langchain_cache/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs & temp ---
+*.log
+*.tmp
+logs/
+tmp/
+
+# --- Audio / TTS ---
+*.mp3
+*.wav
+*.ogg
+
+# --- Test scripts (contain credentials) ---
+test_email.py
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb
+
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# --- Virtual Environments ---
+venv/
+myvenv/
+.venv/
+env/
+ENV/
+
+# --- Environment & Secrets (NEVER commit) ---
+.env
+.env.*
+*.env
+secrets.json
+config.secret.*
+
+# --- Database (SQLite runtime state) ---
+*.db
+*.sqlite
+*.sqlite3
+database.db
+
+# --- Streamlit ---
+.streamlit/secrets.toml
+
+# --- LangSmith / LangChain cache ---
+.langchain/
+langchain_cache/
+
+# --- IDE & Editors ---
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs & temp ---
+*.log
+*.tmp
+*.temp
+logs/
+tmp/
+
+# --- Audio / TTS cache ---
+*.mp3
+*.wav
+*.ogg
+tts_cache/
+
+# --- Image uploads (user data) ---
+uploads/
+*.uploaded.*
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb
+
+# --- Testing ---
+.pytest_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,44 @@
+# ============================================
+# KisanAI — Requirements
+# ============================================
+
+# Core LangChain / LangGraph
+langchain
+langgraph
+langchain-groq
+langchain-openai
+langchain-community
+langchain-core
+
+# LangGraph SQLite persistence
+langgraph-checkpoint-sqlite
+
+# OpenAI (GPT-4o Vision + Whisper STT)
+openai
+
+# Environment
+python-dotenv
+
+# Streamlit UI
+streamlit
+
+# Web search
+duckduckgo-search
+
+# Voice — Text-to-Speech
+gTTS
+
+# Audio utility
+pydub
+
+# Language detection
+langdetect
+
+# Image handling
+Pillow
+
+# HTTP requests
+requests
+
+# LangSmith tracing
+langsmith
