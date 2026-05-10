@@ -118,8 +118,11 @@ def build_graph(checkpointer):
 
 # ═══════════════════════════════════════════════════
 # PERSISTENCE — SQLite
+# Cloud Run: filesystem read-only, use /tmp
+# Local dev: use project directory
 # ═══════════════════════════════════════════════════
-_DB_PATH     = os.path.join(_THIS_DIR, "database.db")
+_IS_CLOUD = os.getenv("K_SERVICE") is not None  # Cloud Run sets K_SERVICE
+_DB_PATH  = "/tmp/database.db" if _IS_CLOUD else os.path.join(_THIS_DIR, "database.db")
 connection   = sqlite3.connect(_DB_PATH, check_same_thread=False)
 checkpointer = SqliteSaver(conn=connection)
 
