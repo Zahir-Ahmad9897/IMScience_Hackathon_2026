@@ -21,6 +21,7 @@ os.environ["LANGCHAIN_API_KEY"]    = os.getenv("LANGCHAIN_API_KEY", "")
 os.environ["LANGCHAIN_PROJECT"]    = "KisanAI-MultiAgent"
 
 from langchain_openai import ChatOpenAI
+from langchain_groq   import ChatGroq
 from langchain_core.messages import BaseMessage
 from langgraph.graph import StateGraph, START, END, add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -50,15 +51,25 @@ class KisanState(TypedDict):
 
 
 # ═══════════════════════════════════════════════════
-# LLM — OpenAI GPT-4o
-# Best-in-class tool use, multilingual, + Urdu
+# LLM — OpenAI GPT-4o with Groq Fallback
+# Best-in-class tool use + Fast Llama-3 backup
 # ═══════════════════════════════════════════════════
-_llm = ChatOpenAI(
-    model="gpt-4o",
-    api_key=os.getenv("OPENAI_API_KEY"),
-    temperature=0.15,
-    max_tokens=1024,
-)
+_openai_key = os.getenv("OPENAI_API_KEY")
+_groq_key   = os.getenv("GROQ_API_KEY")
+
+_llm_openai = ChatOpenAI(model="gpt-4o", api_key=_openai_key, temperature=0.15) if _openai_key else None
+_llm_groq   = ChatGroq(model="llama-3.3-70b-versatile", api_key=_groq_key, temperature=0.15) if _groq_key else None
+
+def _bind_with_fallback(tools):
+    if _llm_openai and _llm_groq:
+        return _llm_openai.bind_tools(tools).with_fallbacks([_llm_groq.bind_tools(tools)])
+    elif _llm_openai:
+        return _llm_openai.bind_tools(tools)
+    elif _llm_groq:
+        return _llm_groq.bind_tools(tools)
+    else:
+        raise ValueError("Neither OPENAI_API_KEY nor GROQ_API_KEY found in environment.")
+
 
 # ── Tool subsets per role ─────────────────────────
 _farmer_tools   = [web_search, get_weather, analyze_crop_image, agri_calculator]
@@ -67,9 +78,9 @@ _doctor_tools   = [analyze_crop_image, web_search, agri_calculator]
 _all_tools      = [web_search, get_weather, analyze_crop_image, agri_calculator]
 
 # ── Agent nodes ───────────────────────────────────
-farmer_node   = make_farmer_node(_llm.bind_tools(_farmer_tools))
-customer_node = make_customer_node(_llm.bind_tools(_customer_tools))
-doctor_node   = make_doctor_node(_llm.bind_tools(_doctor_tools))
+farmer_node   = make_farmer_node(_bind_with_fallback(_farmer_tools))
+customer_node = make_customer_node(_bind_with_fallback(_customer_tools))
+doctor_node   = make_doctor_node(_bind_with_fallback(_doctor_tools))
 tool_node     = ToolNode(_all_tools)
 
 
