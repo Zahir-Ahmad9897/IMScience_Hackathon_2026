@@ -4,9 +4,9 @@
 
 # Core LangChain / LangGraph
 langchain
-langgraph
+langgraph==0.1.14
 langchain-groq
-langchain-openai
+langchain-openai==0.1.7
 langchain-community
 langchain-core
 
@@ -14,7 +14,7 @@ langchain-core
 langgraph-checkpoint-sqlite
 
 # OpenAI (GPT-4o Vision + Whisper STT)
-openai
+openai==1.54.0
 
 # Environment
 python-dotenv

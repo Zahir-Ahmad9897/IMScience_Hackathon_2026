@@ -15,105 +15,66 @@
 
 ## System Architecture
 
-```
-                         STREAMLIT UI
-          +------------------------------------------+
-          |  Chat | Voice | Image | Demo Slider | TTS |
-          +--------------------+---------------------+
-                               |
-                               v
-          +------------------------------------------+
-          |           LANGRAPH ORCHESTRATOR          |
-          |                                          |
-          |   Routes by user_role -->  agent node    |
-          |   SQLite Checkpointer  -->  full memory  |
-          |   LangSmith Tracer     -->  live debug   |
-          +-------+------------+------------+--------+
-                  |            |            |
-          +-------+--+  +------+---+  +----+------+
-          |  FARMER  |  | CUSTOMER |  |  DOCTOR   |
-          |  AGENT   |  |  AGENT   |  |  AGENT    |
-          |          |  |          |  |           |
-          | GPT-4o   |  | GPT-4o   |  | GPT-4o    |
-          | Agronomst|  | Market   |  | Pathologst|
-          +-------+--+  +------+---+  +----+------+
-                  |            |            |
-                  +------------+------------+
-                               |
-               +---------------+---------------+
-               |         SHARED TOOLS          |
-               |                               |
-               |  +----------+  +----------+   |
-               |  |web_search|  | weather  |   |
-               |  | DuckDuck |  | OpenWthr |   |
-               |  +----------+  +----------+   |
-               |  +----------+  +----------+   |
-               |  | vision   |  |  calc    |   |
-               |  | GPT-4o   |  | agri_clc |   |
-               |  +----------+  +----------+   |
-               +---------------+---------------+
-                               |
-               +---------------+---------------+
-               |        ALERT SYSTEM           |
-               |                               |
-               |  +----------+  +----------+   |
-               |  | Weather  |  | Disease  |   |
-               |  |  Alert   |  |  Alert   |   |
-               |  +----------+  +----------+   |
-               |         +----------+          |
-               |         | Market   |          |
-               |         |  Alert   |          |
-               |         +----------+          |
-               |                               |
-               |    Gmail SMTP  -->  Email      |
-               +-------------------------------+
+```mermaid
+flowchart TD
+    UI[Streamlit UI: Chat, Voice, Image, TTS] --> Orch{LangGraph Orchestrator}
+    
+    Orch -->|Routes by user_role| Farmer[Farmer Agent: Agronomist]
+    Orch -->|Routes by user_role| Customer[Customer Agent: Market]
+    Orch -->|Routes by user_role| Doctor[Doctor Agent: Pathologist]
+    
+    Farmer --> Tools{Shared Tools}
+    Customer --> Tools
+    Doctor --> Tools
+    
+    Tools --> WebSearch[Web Search: DuckDuckGo]
+    Tools --> WeatherAPI[Weather: OpenWeatherMap]
+    Tools --> Vision[Vision: GPT-4o]
+    Tools --> Calc[Agri Calculator]
+    
+    WeatherAPI --> Alerts{Alert System}
+    Vision --> Alerts
+    WebSearch --> Alerts
+    
+    Alerts --> WeatherAlert[Weather Alert]
+    Alerts --> DiseaseAlert[Disease Alert]
+    Alerts --> MarketAlert[Market Alert]
+    
+    WeatherAlert --> Email[Gmail SMTP Email]
+    DiseaseAlert --> Email
+    MarketAlert --> Email
 ```
 
 ---
 
 ## Orchestrator — Central Hub
 
+```mermaid
+graph TD
+    A([User Input: Text/Voice/Image]) --> B{Language & Vision Pre-Processing}
+    B --> C{LangGraph Orchestrator Router}
+    
+    C -->|user_role=farmer| D[Farmer Agent Node]
+    C -->|user_role=customer| E[Customer Agent Node]
+    C -->|user_role=doctor| F[Doctor Agent Node]
+    
+    D --> G{Tool Called?}
+    E --> G
+    F --> G
+    
+    G -->|Yes| H[Tool Node Execution]
+    H --> D
+    H --> E
+    H --> F
+    
+    G -->|No| I([Response Rendered & SQLite Saved])
+    
+    subgraph Tools
+    H
+    end
 ```
-                            USER INPUT
-                          (Text/Voice/Image)
-                                 |
-                     +-----------+-----------+
-                     |                       |
-              Language Detection        Image Analysis
-               (auto EN / UR)          (GPT-4o Vision)
-                     |                       |
-                     +-----------+-----------+
-                                 |
-                     +-----------v-----------+
-                     |                       |
-                     |   LangGraph           |
-                     |   ORCHESTRATOR        |
-                     |                       |
-                     |  user_role ---------> |----> farmer_node
-                     |  language  ---------> |----> customer_node
-                     |  image_ctx ---------> |----> doctor_node
-                     |  thread_id ---------> |----> SQLite Memory
-                     |                       |
-                     +-----------+-----------+
-                                 |
-                        +--------+--------+
-                        |                 |
-                   Tool Called?       No Tool
-                        |                 |
-                   ToolNode            Direct
-                   Executes            Reply
-                        |                 |
-                        +--------+--------+
-                                 |
-                     +-----------v-----------+
-                     |   RESPONSE RENDERED   |
-                     |  RTL if Urdu          |
-                     |  TTS if enabled       |
-                     |  Alert if threshold   |
-                     +-----------------------+
-                                 |
-                          LangSmith Log
-```
+
+> **Note:** As I use the OpenAI API for testing right now, the application will not work live unless valid API keys are configured in the environment.
 
 ---
 

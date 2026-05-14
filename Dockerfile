@@ -21,8 +21,11 @@ ENV STREAMLIT_SERVER_HEADLESS=true
 ENV STREAMLIT_SERVER_ENABLE_CORS=false
 ENV STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=false
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s CMD curl -f http://localhost:8080/_stcore/health || exit 1
 
 CMD ["streamlit", "run", "app.py", \
      "--server.port=8080", \

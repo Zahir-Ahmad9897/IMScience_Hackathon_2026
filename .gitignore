@@ -32,6 +32,8 @@ secrets.json
 *.db
 *.sqlite
 *.sqlite3
+*.db-shm
+*.db-wal
 database.db
 
 # --- Streamlit ---
@@ -103,6 +105,8 @@ config.secret.*
 *.db
 *.sqlite
 *.sqlite3
+*.db-shm
+*.db-wal
 database.db
 
 # --- Streamlit ---
